@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTS Compact Dashboard</title>
+    <title>VTS Compact Dashboard - Frozen Column</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; margin: 0; padding: 5px; }
         
@@ -20,24 +20,37 @@
 
         .vts-title { background: #2980b9; color: white; padding: 6px; font-weight: bold; font-size: 12px; text-align: center; }
         
-        /* Table Design - Compact */
-        .container { overflow-x: auto; background: white; border: 1px solid #ccc; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; table-layout: auto; }
-        th { background: #34495e; color: white; padding: 5px 2px; font-size: 10px; position: sticky; top: 0; }
+        /* Table Design - Compact & Frozen Column Support */
+        .container { overflow-x: auto; background: white; border: 1px solid #ccc; margin-bottom: 10px; position: relative; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 800px; table-layout: auto; }
         
-        /* Binawasan ang padding at line-height para dikit-dikit */
-        td { border: 1px solid #ddd; padding: 3px 2px; text-align: center; font-size: 10px; line-height: 1.1; word-wrap: break-word; }
+        th { background: #34495e; color: white; padding: 5px 2px; font-size: 10px; position: sticky; top: 0; z-index: 2; border-bottom: 1px solid #ccc; }
+        td { border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; padding: 3px 2px; text-align: center; font-size: 10px; line-height: 1.1; word-wrap: break-word; background: white; }
+
+        /* FREEZE DONE COLUMN LOGIC */
+        .freeze-col {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background-color: #f9f9f9 !important; /* Ibang kulay para halatang frozen */
+            border-right: 2px solid #34495e !important;
+            min-width: 35px;
+        }
         
-        .summary-table { min-width: 500px; }
+        th.freeze-col {
+            z-index: 3; /* Dapat mas mataas sa regular th at td */
+            background-color: #34495e !important;
+        }
+
+        .summary-table { min-width: 500px; border-collapse: collapse; }
         .loc-head { background: #f1c40f; color: black; }
 
         /* Compact Checkbox */
-        .chk-done { transform: scale(1.2); cursor: pointer; margin: 0; vertical-align: middle; }
-        .saving-row { background-color: #d1ffd1 !important; }
+        .chk-done { transform: scale(1.1); cursor: pointer; margin: 0; vertical-align: middle; }
+        .saving-row td { background-color: #d1ffd1 !important; }
         
         #loadStatus { color: #e67e22; text-align: center; font-size: 11px; font-weight: bold; display: none; margin-bottom: 5px; }
 
-        /* Mobile Adjustments */
         @media screen and (max-width: 600px) {
             body { padding: 2px; }
             td, th { font-size: 9px; padding: 2px 1px; }
@@ -87,7 +100,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="min-width: 30px;">DONE</th>
+                        <th class="freeze-col">DONE</th>
                         <th>Sold-to</th>
                         <th>Model</th>
                         <th>Color</th>
@@ -141,7 +154,7 @@
             const dBody = haulingData.map(r => {
                 const checked = r.DONE === "YES" ? "checked" : "";
                 return `<tr>
-                    <td><input type="checkbox" class="chk-done" ${checked} onchange="updateSheet('${r.CS}', this)"></td>
+                    <td class="freeze-col"><input type="checkbox" class="chk-done" ${checked} onchange="updateSheet('${r.CS}', this)"></td>
                     ${cols.map(c => `<td>${r[c] || ""}</td>`).join('')}
                 </tr>`;
             }).join('');
