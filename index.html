@@ -3,71 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTS Mobile Dashboard</title>
+    <title>VTS Compact Dashboard</title>
     <style>
-        body { font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; margin: 0; padding: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; margin: 0; padding: 5px; }
         
-        /* Login Style */
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a252f; display: flex; justify-content: center; align-items: center; z-index: 10000; color: white; flex-direction: column; }
-        .login-box { background: white; padding: 30px; border-radius: 8px; text-align: center; color: #333; width: 85%; max-width: 320px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .login-box input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        /* Compact Login */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a252f; display: flex; justify-content: center; align-items: center; z-index: 10000; color: white; }
+        .login-box { background: white; padding: 20px; border-radius: 8px; text-align: center; color: #333; width: 80%; max-width: 300px; }
+        .login-box input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
 
-        /* Navigation & Buttons */
-        .controls { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-        button { flex: 1; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; min-height: 48px; font-size: 14px; }
+        /* Compact Controls */
+        .controls { display: flex; gap: 5px; margin-bottom: 5px; }
+        button { flex: 1; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; min-height: 38px; }
         .btn-sync { background: #27ae60; color: white; }
         .btn-toggle { background: #2980b9; color: white; }
 
-        .vts-title { background: #2980b9; color: white; padding: 12px; font-weight: bold; font-size: 14px; text-align: center; border-radius: 4px 4px 0 0; }
+        .vts-title { background: #2980b9; color: white; padding: 6px; font-weight: bold; font-size: 12px; text-align: center; }
         
-        /* Table Design */
-        .container { overflow-x: auto; background: white; border: 1px solid #ccc; margin-bottom: 20px; border-radius: 0 0 4px 4px; -webkit-overflow-scrolling: touch; }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        th { background: #34495e; color: white; padding: 12px 8px; font-size: 11px; position: sticky; top: 0; }
-        td { border: 1px solid #eee; padding: 10px 5px; text-align: center; font-size: 11px; white-space: nowrap; }
+        /* Table Design - Compact */
+        .container { overflow-x: auto; background: white; border: 1px solid #ccc; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; table-layout: auto; }
+        th { background: #34495e; color: white; padding: 5px 2px; font-size: 10px; position: sticky; top: 0; }
         
-        /* Summary Table specific */
-        .summary-table { min-width: 600px; }
+        /* Binawasan ang padding at line-height para dikit-dikit */
+        td { border: 1px solid #ddd; padding: 3px 2px; text-align: center; font-size: 10px; line-height: 1.1; word-wrap: break-word; }
+        
+        .summary-table { min-width: 500px; }
         .loc-head { background: #f1c40f; color: black; }
 
-        /* Checkbox Style */
-        .chk-done { transform: scale(1.6); cursor: pointer; }
-        .saving-row { background-color: #d1ffd1 !important; transition: 0.3s; }
+        /* Compact Checkbox */
+        .chk-done { transform: scale(1.2); cursor: pointer; margin: 0; vertical-align: middle; }
+        .saving-row { background-color: #d1ffd1 !important; }
         
-        #loadStatus { color: #e67e22; text-align: center; font-weight: bold; display: none; margin-bottom: 10px; }
+        #loadStatus { color: #e67e22; text-align: center; font-size: 11px; font-weight: bold; display: none; margin-bottom: 5px; }
+
+        /* Mobile Adjustments */
+        @media screen and (max-width: 600px) {
+            body { padding: 2px; }
+            td, th { font-size: 9px; padding: 2px 1px; }
+        }
     </style>
 </head>
 <body>
 
     <div id="loginOverlay">
         <div class="login-box">
-            <h2>VTS LOGIN</h2>
-            <input type="password" id="passInput" placeholder="Enter Password" onkeypress="if(event.key==='Enter')login()">
+            <h3>VTS LOGIN</h3>
+            <input type="password" id="passInput" placeholder="Password" onkeypress="if(event.key==='Enter')login()">
             <button class="btn-toggle" onclick="login()" style="width: 100%;">LOGIN</button>
         </div>
     </div>
 
     <div id="mainApp" style="display:none;">
         <div class="controls">
-            <button class="btn-sync" onclick="fetchData()">🔄 REFRESH DATA</button>
-            <button class="btn-toggle" id="tBtn" onclick="toggleSummary()">📊 SHOW SUMMARY</button>
+            <button class="btn-sync" onclick="fetchData()">🔄 REFRESH</button>
+            <button class="btn-toggle" id="tBtn" onclick="toggleSummary()">📊 SUMMARY</button>
         </div>
 
-        <div id="loadStatus">📡 Syncing with Google Sheets...</div>
+        <div id="loadStatus">📡 Syncing...</div>
 
         <div id="summaryWrap" style="display:none;">
-            <div class="vts-title">VTS MONITORING DASHBOARD (REAL-TIME)</div>
+            <div class="vts-title">SUMMARY DASHBOARD</div>
             <div class="container">
                 <table class="summary-table">
                     <thead>
                         <tr>
-                            <th colspan="2">CATEGORY / STATUS</th>
-                            <th class="loc-head">1K11-Aratan</th>
-                            <th class="loc-head">1K06-Cross</th>
-                            <th class="loc-head">1K07-FilSyn</th>
-                            <th class="loc-head">1K03-LGICT</th>
-                            <th class="loc-head">1K12-Lawa</th>
-                            <th style="background:#e67e22">TOTAL</th>
+                            <th colspan="2">CAT / STATUS</th>
+                            <th class="loc-head">1K11</th>
+                            <th class="loc-head">1K06</th>
+                            <th class="loc-head">1K07</th>
+                            <th class="loc-head">1K03</th>
+                            <th class="loc-head">1K12</th>
+                            <th style="background:#e67e22">TTL</th>
                         </tr>
                     </thead>
                     <tbody id="dashBody"></tbody>
@@ -75,22 +82,21 @@
             </div>
         </div>
 
-        <div class="vts-title">HAULING PLAN DETAILS</div>
+        <div class="vts-title">HAULING DETAILS</div>
         <div class="container">
             <table>
                 <thead>
                     <tr>
-                        <th>DONE</th>
-                        <th>Sold-to Party</th>
-                        <th>Model Description</th>
-                        <th>Exterior Color</th>
+                        <th style="min-width: 30px;">DONE</th>
+                        <th>Sold-to</th>
+                        <th>Model</th>
+                        <th>Color</th>
                         <th>CS</th>
-                        <th>Billing Date</th>
-                        <th>Vehicle ID No.</th>
-                        <th>Vehicle Stockyard</th>
-                        <th>Batch No. (Luzon)</th>
-                        <th>ETD MP</th>
-                        <th>DESTINATION</th>
+                        <th>Vehicle ID</th>
+                        <th>Stockyard</th>
+                        <th>Batch</th>
+                        <th>ETD</th>
+                        <th>DEST</th>
                         <th>CARRIER</th>
                     </tr>
                 </thead>
@@ -100,9 +106,8 @@
     </div>
 
     <script>
-        // PASTE YOUR EXEC URL HERE
         const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwn7QNM03-v_6cam_OVEcEUA7JpDBX923h8VryMF7rpbnkv5gD3xLpZ9dsxaEbG9kK_Hg/exec';
-        const cols = ["Sold-to Party", "Model Description", "Exterior Color", "CS", "Billing Date", "Vehicle ID No.", "Vehicle Stockyard", "Batch No. (Luzon)", "ETD MP", "DESTINATION", "CARRIER"];
+        const cols = ["Sold-to Party", "Model Description", "Exterior Color", "CS", "Vehicle ID No.", "Vehicle Stockyard", "Batch No. (Luzon)", "ETD MP", "DESTINATION", "CARRIER"];
 
         function login() { 
             if(document.getElementById('passInput').value === "Ems@pau123") {
@@ -117,7 +122,7 @@
             const btn = document.getElementById('tBtn');
             const isHidden = wrap.style.display === "none";
             wrap.style.display = isHidden ? "block" : "none";
-            btn.innerText = isHidden ? "❌ HIDE SUMMARY" : "📊 SHOW SUMMARY";
+            btn.innerText = isHidden ? "❌ HIDE" : "📊 SUMMARY";
         }
 
         let haulingData = [];
@@ -128,12 +133,11 @@
                 const res = await fetch(GOOGLE_SHEET_URL);
                 haulingData = await res.json();
                 renderAll();
-            } catch (e) { alert("Error connecting to Sheet"); }
+            } catch (e) { console.error(e); }
             document.getElementById('loadStatus').style.display = 'none';
         }
 
         function renderAll() {
-            // Render Details
             const dBody = haulingData.map(r => {
                 const checked = r.DONE === "YES" ? "checked" : "";
                 return `<tr>
@@ -143,14 +147,13 @@
             }).join('');
             document.getElementById('detailsBody').innerHTML = dBody;
 
-            // Render Summary
             const locs = ["1K11", "1K06", "1K07", "1K03", "1K12"];
             const cats = ["RVL", "DSTC", "RPM", "WILL EX", "GSDC"];
             let sHtml = "";
             cats.forEach(c => {
                 let p = locs.map(l => haulingData.filter(u => String(u['CARRIER']||"").includes(c) && String(u['Vehicle Stockyard']||"").includes(l)).length);
                 const total = p.reduce((a,b)=>a+b,0);
-                sHtml += `<tr><td style="font-weight:bold">${c}</td><td>PLAN</td>${p.map(x=>`<td>${x}</td>`).join('')}<td>${total}</td></tr>`;
+                sHtml += `<tr><td style="font-weight:bold">${c}</td><td>PLN</td>${p.map(x=>`<td>${x}</td>`).join('')}<td>${total}</td></tr>`;
             });
             document.getElementById('dashBody').innerHTML = sHtml;
         }
@@ -159,19 +162,14 @@
             const row = el.closest('tr');
             row.classList.add('saving-row');
             const status = el.checked ? "YES" : "NO";
-            
             try {
                 await fetch(GOOGLE_SHEET_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     body: JSON.stringify({ cs: csNum, status: status })
                 });
-                // Note: 'no-cors' wont let us read response but it will reach the sheet
-            } catch (e) { 
-                alert("Update failed"); 
-                el.checked = !el.checked;
-            }
-            setTimeout(() => row.classList.remove('saving-row'), 500);
+            } catch (e) { el.checked = !el.checked; }
+            setTimeout(() => row.classList.remove('saving-row'), 300);
         }
     </script>
 </body>
