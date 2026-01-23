@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTS Dashboard with Sync</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 5px; }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; display: flex; justify-content: center; align-items: center; z-index: 9999; color: white; flex-direction: column; }
+        .login-box { background: white; padding: 25px; border-radius: 5px; text-align: center; color: #333; width: 85%; max-width: 320px; }
+        
+        .header-section { background: white; padding: 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
+        button { border: none; padding: 12px 15px; border-radius: 3px; cursor: pointer; font-weight: bold; min-height: 44px; }
+        .btn-sync { background: #28a745; color: white; }
+        .btn-toggle { background: #4472c4; color: white; }
+
+        .vts-title-bar { background-color: #4472c4; color: white; padding: 10px; font-weight: bold; font-size: 14px; border: 1px solid #2f5597; }
+        
+        /* Table Styles */
+        .details-container { overflow-x: auto; max-height: 60vh; border: 1px solid #000; background: white; -webkit-overflow-scrolling: touch; }
+        .details-table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        .details-table th { position: sticky; top: 0; background-color: #333; color: white; padding: 10px; font-size: 11px; z-index: 10; }
+        .details-table td { border: 1px solid #000; padding: 8px 4px; text-align: center; font-size: 11px; }
+
+        /* Status Checkbox Style */
+        .chk-box { transform: scale(1.5); cursor: pointer; }
+        .saving { opacity: 0.5; pointer-events: none; }
+
+        @media (min-width: 600px) { .header-section { flex-direction: row; justify-content: center; } }
+    </style>
+</head>
+<body>
+
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h3>VTS Dashboard Login</h3>
+            <input type="password" id="passInput" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px;">
+            <button style="background:#4472c4; color:white; width:100%" onclick="login()">LOGIN</button>
+        </div>
+    </div>
+
+    <div id="mainApp" style="display:none;">
+        <div class="header-section">
+            <button class="btn-sync" onclick="fetchData()">🔄 SYNC DATA</button>
+            <button class="btn-toggle" onclick="toggleSummary()">📊 SUMMARY</button>
+        </div>
+
+        <div id="summaryArea" style="display:none;">
+            <div class="vts-title-bar">SUMMARY VIEW</div>
+            <div style="background:white; padding:10px; border:1px solid #000; overflow-x:auto;" id="summaryTable"></div>
+        </div>
+
+        <div class="vts-title-bar">HAULING PLAN DETAILS</div>
+        <div class="details-container">
+            <table class="details-table">
+                <thead>
+                    <tr>
+                        <th>STATUS</th> <th>Sold-to Party</th>
+                        <th>Model Description</th>
+                        <th>Exterior Color</th>
+                        <th>CS</th>
+                        <th>Billing Date</th>
+                        <th>Vehicle ID No.</th>
+                        <th>Vehicle Stockyard</th>
+                        <th>Batch No. (Luzon)</th>
+                        <th>ETD MP</th>
+                        <th>DESTINATION</th>
+                        <th>CARRIER</th>
+                    </tr>
+                </thead>
+                <tbody id="detailsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzZ9IAk5h-mCz28LRGVwnWZ1wNNSVFz9yRvuhLYmV9R6_yuvY9iLshLGgrZVmdjgRRZIw/exec';
+        const displayCols = ["Sold-to Party", "Model Description", "Exterior Color", "CS", "Billing Date", "Vehicle ID No.", "Vehicle Stockyard", "Batch No. (Luzon)", "ETD MP", "DESTINATION", "CARRIER"];
+
+        function login() { 
+            if(document.getElementById('passInput').value === "Ems@pau123") {
+                document.getElementById('loginOverlay').style.display='none';
+                document.getElementById('mainApp').style.display='block';
+                fetchData();
+            } else { alert("Wrong password"); }
+        }
+
+        let haulingData = [];
+
+        async function fetchData() {
+            try {
+                const response = await fetch(GOOGLE_SHEET_URL);
+                haulingData = await response.json();
+                renderDetails();
+            } catch (e) { alert("Error fetching data"); }
+        }
+
+        function renderDetails() {
+            const html = haulingData.map(r => {
+                const isChecked = r.DONE === "YES" ? "checked" : ""; // Titingin sa column na "DONE"
+                return `<tr>
+                    <td><input type="checkbox" class="chk-box" ${isChecked} onchange="updateStatus('${r.CS}', this)"></td>
+                    ${displayCols.map(c => `<td>${r[c] || ""}</td>`).join('')}
+                </tr>`;
+            }).join('');
+            document.getElementById('detailsBody').innerHTML = html;
+        }
+
+        async function updateStatus(csNumber, element) {
+            const row = element.closest('tr');
+            row.classList.add('saving'); // I-dim ang row habang nagse-save
+            
+            const statusValue = element.checked ? "YES" : "NO";
+
+            try {
+                await fetch(GOOGLE_SHEET_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ cs: csNumber, status: statusValue }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                console.log("Updated " + csNumber);
+            } catch (e) {
+                alert("Failed to update Google Sheet");
+                element.checked = !element.checked; // I-revert kung fail
+            }
+            row.classList.remove('saving');
+        }
+
+        function toggleSummary() {
+            const x = document.getElementById('summaryArea');
+            x.style.display = x.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>
