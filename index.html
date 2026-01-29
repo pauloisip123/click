@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTS Mobile Dashboard - Frozen Fix</title>
+    <title>VTS Mobile Dashboard - No Password</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; margin: 0; padding: 5px; }
         
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a252f; display: flex; justify-content: center; align-items: center; z-index: 10000; color: white; }
-        .login-box { background: white; padding: 20px; border-radius: 8px; text-align: center; color: #333; width: 80%; max-width: 300px; }
-        .login-box input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-
         .controls { display: flex; gap: 5px; margin-bottom: 5px; }
         button { flex: 1; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; min-height: 38px; }
         .btn-sync { background: #27ae60; color: white; }
@@ -25,7 +21,7 @@
             border: 1px solid #ccc; 
             margin-bottom: 10px; 
             position: relative;
-            max-width: 100vw; /* Importante para sa mobile */
+            max-width: 100vw;
         }
 
         table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 900px; }
@@ -36,22 +32,21 @@
 
         /* STRONG STICKY COLUMN FOR MOBILE */
         .freeze-col {
-            position: -webkit-sticky; /* Support for Safari mobile */
+            position: -webkit-sticky;
             position: sticky;
             left: 0;
             z-index: 5;
-            background-color: #ffffff !important; /* Puti dapat para hindi kita ang text sa ilalim */
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* Anino para halatang frozen */
+            background-color: #ffffff !important;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
             min-width: 45px;
             width: 45px;
         }
         
         th.freeze-col {
-            z-index: 20; /* Pinaka-mataas para hindi matakpan ng top header */
+            z-index: 20;
             background-color: #34495e !important;
         }
 
-        /* Checkbox Appearance */
         .chk-done { transform: scale(1.3); cursor: pointer; }
         .saving-row td { background-color: #d1ffd1 !important; }
         
@@ -65,15 +60,7 @@
 </head>
 <body>
 
-    <div id="loginOverlay">
-        <div class="login-box">
-            <h3>VTS LOGIN</h3>
-            <input type="password" id="passInput" placeholder="Password" onkeypress="if(event.key==='Enter')login()">
-            <button class="btn-toggle" onclick="login()" style="width: 100%;">LOGIN</button>
-        </div>
-    </div>
-
-    <div id="mainApp" style="display:none;">
+    <div id="mainApp">
         <div class="controls">
             <button class="btn-sync" onclick="fetchData()">🔄 REFRESH</button>
             <button class="btn-toggle" id="tBtn" onclick="toggleSummary()">📊 SUMMARY</button>
@@ -128,13 +115,8 @@
         const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwn7QNM03-v_6cam_OVEcEUA7JpDBX923h8VryMF7rpbnkv5gD3xLpZ9dsxaEbG9kK_Hg/exec';
         const cols = ["Sold-to Party", "Model Description", "Exterior Color", "CS", "Vehicle ID No.", "Vehicle Stockyard", "Batch No. (Luzon)", "ETD MP", "DESTINATION", "CARRIER"];
 
-        function login() { 
-            if(document.getElementById('passInput').value === "Ems@pau123") {
-                document.getElementById('loginOverlay').style.display='none';
-                document.getElementById('mainApp').style.display='block';
-                fetchData();
-            } else { alert("Maling Password!"); }
-        }
+        // Automatic fetch pagkabukas ng page
+        window.onload = fetchData;
 
         function toggleSummary() {
             const wrap = document.getElementById('summaryWrap');
@@ -152,7 +134,10 @@
                 const res = await fetch(GOOGLE_SHEET_URL);
                 haulingData = await res.json();
                 renderAll();
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error(e);
+                alert("Error loading data. Check internet connection.");
+            }
             document.getElementById('loadStatus').style.display = 'none';
         }
 
@@ -187,7 +172,10 @@
                     mode: 'no-cors',
                     body: JSON.stringify({ cs: csNum, status: status })
                 });
-            } catch (e) { el.checked = !el.checked; }
+            } catch (e) { 
+                el.checked = !el.checked;
+                alert("Failed to save. Check connection.");
+            }
             setTimeout(() => row.classList.remove('saving-row'), 300);
         }
     </script>
